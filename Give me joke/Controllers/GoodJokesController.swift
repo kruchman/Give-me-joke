@@ -8,45 +8,55 @@
 import UIKit
 import CoreData
 
-class LikedJokesController: UITableViewController {
+class GoodJokesController: UITableViewController {
 
-    let dataManager = CoreDataManager()
-    var likedJokes: [SavedJokes] = []
+    private let dataManager = CoreDataManager()
+    private var goodJokes: [SavedJokes] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .orange
+        navigationItem.title = "Good Jokes 🔥🔥🔥"
+        navigationController?.navigationBar.tintColor = .black
+
+        tableView.delegate = self
+        tableView.register(UINib(nibName: "JokeCell", bundle: nil), forCellReuseIdentifier: "JokeCell")
         
-        tableView.register(LikedJokeCell.self, forCellReuseIdentifier: "LikedJokeCell")
-        
-        likedJokes = dataManager.loadLikedJokes()
+        goodJokes = dataManager.loadLikedJokes()
         tableView.reloadData()
         
     }
 
-    // MARK: - Table view data source
+    // MARK: - Table view data source methods
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return likedJokes.count
+        return goodJokes.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "LikedJokeCell", for: indexPath) as! LikedJokeCell
-        if indexPath.row < likedJokes.count {
-            cell.configure(setup: likedJokes[indexPath.row].setup ?? "", punchline: likedJokes[indexPath.row].punchline ?? "")
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "JokeCell", for: indexPath) as! JokeCell
 
-                return cell
+        cell.setupLabel.text = goodJokes[indexPath.row].setup
+        cell.punchlineLabel.text = goodJokes[indexPath.row].punchline
         
+        return cell
+        
+    }
+
+    
+    // MARK: - Table view delegate methods
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let cellHeight = 120
+        return CGFloat(cellHeight)
     }
     
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { action, view, completionHandler in
-            self.dataManager.context.delete(self.likedJokes[indexPath.row])
-            self.likedJokes.remove(at: indexPath.row)
+            self.dataManager.context.delete(self.goodJokes[indexPath.row])
+            self.goodJokes.remove(at: indexPath.row)
             
             self.dataManager.saveContext()
             tableView.reloadData()

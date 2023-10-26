@@ -8,24 +8,23 @@
 import UIKit
 import CoreData
 
-class MainController: UIViewController {
+final class MainController: UIViewController {
     
-    let dataManager = CoreDataManager()
+    private let dataManager = CoreDataManager()
+    private var apiRequestmanager = APIRequestManager()
     
-    var APIRequestmanager = APIRequestManager()
+    private let jokeSetupLabel = UILabel()
+    private let jokePunchLabel = UILabel()
     
-    let jokePunchLabel = UILabel()
-    let jokeSetupLabel = UILabel()
+    private let likeButton = UIButton()
+    private let dislikeButton = UIButton()
     
-    let likeButton = UIButton()
-    let dislikeButton = UIButton()
-    
-    let likedJokes = UIButton()
+    let goodJokesButton = UIButton()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .orange
+        Gradients.makeBackground(view: view)
         
         JokePunchLabelConfig.setupLabel(jokePunchLabel, onView: view)
         JokeSetupLabelConfig.setupLabel(jokeSetupLabel, relativeTo: jokePunchLabel, onView: view)
@@ -33,32 +32,62 @@ class MainController: UIViewController {
         LikeButtonConfig.setupButton(likeButton, relativeTo: jokePunchLabel, onView: view)
         DislikeButtonConfig.setupButton(dislikeButton, relativeTo: likeButton, onView: view)
         
-        LikedJokesButtonConfig.setupButton(likedJokes, relativeTo: likeButton, onView: view)
+        GoodJokesButtonConfig.setupButton(goodJokesButton, relativeTo: likeButton, onView: view)
         
-        APIRequestmanager.fetchJoke(jokePunchLabel: jokePunchLabel, jokeSetupLabel: jokeSetupLabel)
+        apiRequestmanager.fetchJoke { result in
+            switch result {
+            case .success(let joke):
+                DispatchQueue.main.async {
+                    self.jokeSetupLabel.text = joke.setup
+                    self.jokePunchLabel.text = joke.punchline
+                }
+            case .failure(_):
+                return
+            }
+        }
         
         likeButton.addTarget(self, action: #selector(likeButtonPressed), for: .touchUpInside)
         dislikeButton.addTarget(self, action: #selector(dislikeButtonPressed), for: .touchUpInside)
-        likedJokes.addTarget(self, action: #selector(likedJokesButtonPressed), for: .touchUpInside)
+        goodJokesButton.addTarget(self, action: #selector(likedJokesButtonPressed), for: .touchUpInside)
         
     }
     
     @IBAction func dislikeButtonPressed() {
         
-        APIRequestmanager.fetchJoke(jokePunchLabel: jokePunchLabel, jokeSetupLabel: jokeSetupLabel)
+        apiRequestmanager.fetchJoke { result in
+            switch result {
+            case .success(let joke):
+                DispatchQueue.main.async {
+                    self.jokeSetupLabel.text = joke.setup
+                    self.jokePunchLabel.text = joke.punchline
+                }
+            case .failure(_):
+                return
+            }
+        }
         
     }
     
     @IBAction func likeButtonPressed() {
         
         dataManager.saveJoke(setup: jokeSetupLabel.text ?? "", punchline: jokePunchLabel.text ?? "")
-        APIRequestmanager.fetchJoke(jokePunchLabel: jokePunchLabel, jokeSetupLabel: jokeSetupLabel)
+        apiRequestmanager.fetchJoke { result in
+            switch result {
+            case .success(let joke):
+                DispatchQueue.main.async {
+                    self.jokeSetupLabel.text = joke.setup
+                    self.jokePunchLabel.text = joke.punchline
+                }
+            case .failure(_):
+                return
+            }
+        }
         
     }
     
     @IBAction func likedJokesButtonPressed() {
         
-        let likedJokesController = LikedJokesController()
+        let likedJokesController = GoodJokesController()
             navigationController?.pushViewController(likedJokesController, animated: true)
     }
     
